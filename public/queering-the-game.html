@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queering the Game — Editable Workshop</title>
+<style>
+  :root {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --link-color: #ff79c6;
+    --link-hover: #bd93f9;
+    --glitch-color: #ff5555;
+    --ref-color: #50fa7b;
+    --font-family: "Courier New", Courier, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  #game-container {
+    max-width: 860px;
+    width: 100%;
+    padding: 2rem;
+    background: #1e1e1e;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  .edit-banner {
+    background: #2a2a2a;
+    border: 1px dashed #555;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 1.5rem;
+    font-size: 0.85em;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .edit-banner button {
+    background: var(--link-color);
+    color: #121212;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-family);
+    font-weight: bold;
+    font-size: 0.9em;
+  }
+  .edit-banner button:hover {
+    background: var(--link-hover);
+    color: #fff;
+  }
+  [contenteditable="true"] {
+    outline: 1px dashed transparent;
+    border-radius: 3px;
+    transition: outline 0.2s;
+  }
+  [contenteditable="true"]:hover {
+    outline: 1px dashed #555;
+  }
+  [contenteditable="true"]:focus {
+    outline: 2px solid var(--link-color);
+    background: rgba(255, 121, 198, 0.03);
+  }
+  h1 {
+    color: var(--link-color);
+    font-size: 1.8em;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5em;
+    margin-top: 0;
+  }
+  h2 {
+    color: var(--link-color);
+    font-size: 1.4em;
+    margin-top: 1.5em;
+  }
+  h3 {
+    color: var(--ref-color);
+    font-size: 1.1em;
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  a.choice-link {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    margin: 8px 0;
+    cursor: pointer;
+    font-size: 1.1em;
+  }
+  a.choice-link:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
+  }
+  a.ref-link {
+    color: var(--ref-color);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--ref-color);
+  }
+  a.ref-link:hover {
+    color: #8be9fd;
+    border-bottom-color: #8be9fd;
+  }
+  .glitch-text {
+    color: var(--glitch-color);
+    font-weight: bold;
+    animation: glitch 0.5s infinite;
+  }
+  @keyframes glitch {
+    0% { transform: translate(0) }
+    20% { transform: translate(-2px, 2px) }
+    40% { transform: translate(-2px, -2px) }
+    60% { transform: translate(2px, 2px) }
+    80% { transform: translate(2px, -2px) }
+    100% { transform: translate(0) }
+  }
+  .metrics {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+    font-size: 0.9em;
+    color: #888;
+  }
+  .references-section {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #333;
+  }
+  .references-section h2 {
+    color: var(--ref-color);
+  }
+  .references-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  .references-section li {
+    margin-bottom: 0.6em;
+    padding-left: 1.2em;
+    position: relative;
+  }
+  .references-section li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--ref-color);
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.8em;
+    margin-bottom: 1rem;
+    color: #888;
+  }
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .legend .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .legend .dot-pink { background: var(--link-color); }
+  .legend .dot-green { background: var(--ref-color); }
+  .legend .dot-red { background: var(--glitch-color); }
+  .passage-block {
+    display: none;
+  }
+  .passage-block.active {
+    display: block;
+  }
+  .back-to-top {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--link-color);
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+  .back-to-top:hover {
+    color: var(--link-hover);
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+
+  <div class="edit-banner">
+    <span>📝 <strong>EDITABLE MODE</strong> — Click any text to edit it directly. All links are live.</span>
+    <button onclick="toggleEdit()" id="editToggle">Lock Editing</button>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot dot-pink"></span> Game choices / navigation</span>
+    <span><span class="dot dot-green"></span> External references (hyperlinked)</span>
+    <span><span class="dot dot-red"></span> Glitch events</span>
+  </div>
+
+  <!-- ==================== START ==================== -->
+  <div class="passage-block active" id="passage-Start">
+    <h1 contenteditable="true">Welcome to the "Queering the Game" Workshop</h1>
+    <p contenteditable="true">This is an interactive, rhizomatic journey through the 4 pillars of decolonial machinima creation: <strong>OBSERVE, FEEL, HACK, and CO-CREATE</strong>.</p>
+    <p contenteditable="true">Choose your portal:</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalA')">› Portal A: "I want to break the rules"</a></li>
+      <li><a class="choice-link" onclick="goTo('PortalB')">› Portal B: "I want to listen to the land"</a></li>
+      <li><a class="choice-link" onclick="goTo('PortalC')">› Portal C: "I want to build a new body"</a></li>
+      <li><a class="choice-link" onclick="goTo('PortalD')">› Portal D: "I want to archive the unarchivable"</a></li>
+    </ul>
+  </div>
+
+  <!-- ==================== PORTAL A ==================== -->
+  <div class="passage-block" id="passage-PortalA">
+    <h2 contenteditable="true">Portal A — The Anti-Natural Museum</h2>
+    <p contenteditable="true">The word "natural" has historically been used as a moral and political weapon against queer bodies and non-binary ecologies. You are standing in the foyer of the Anti-Natural Museum, a digital space designed specifically to dismantle the logic of victory and extraction.</p>
+    <p contenteditable="true">Here, we do not play to win. As <a class="ref-link" href="https://nyupress.org/9781479831036/video-games-have-always-been-queer/" target="_blank" rel="noopener">Bonnie Ruberg</a> argues in <a class="ref-link" href="https://nyupress.org/9781479831036/video-games-have-always-been-queer/" target="_blank" rel="noopener"><em>Video Games Have Always Been Queer</em></a>, queerness is found in the practice of playing itself: the failure, the slowness, the refusal of the victory state. Look at games like <a class="ref-link" href="https://w.itch.io/dys4ia" target="_blank" rel="noopener"><em>Dys4ia</em></a> by <a class="ref-link" href="https://w.itch.io/" target="_blank" rel="noopener">Anna Anthropy</a> and <a class="ref-link" href="https://merrittk.itch.io/lim" target="_blank" rel="noopener"><em>Lim</em></a> by <a class="ref-link" href="https://merrittk.itch.io/" target="_blank" rel="noopener">merritt k</a>.</p>
+    <p contenteditable="true">Where will you direct your misplay?</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('A_Frustration')">› Examine the architecture of systemic frustration</a></li>
+      <li><a class="choice-link" onclick="goTo('A_DailyLoop')">› Observe the punishing loop of the everyday</a></li>
+      <li><a class="choice-link" onclick="goTo('A_Absurd')">› Embrace absurd transgression and satire</a></li>
+      <li><a class="choice-link" onclick="goTo('Glitch1')">› I am tired of trying to succeed. I just want to give up.</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== A_Frustration ==================== -->
+  <div class="passage-block" id="passage-A_Frustration">
+    <h2 contenteditable="true">The Architecture of Frustration</h2>
+    <p contenteditable="true">You step into a corridor where the walls seem to close in. You are learning to read games against the grain, finding the cracks in the system's logic. You are observing how mainstream mechanics enforce a binary, solid world.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('A_DailyLoop')">› Linger where the game wants you to run</a></li>
+      <li><a class="choice-link" onclick="goTo('PortalC')">› Take this broken body and build a new one</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== A_DailyLoop ==================== -->
+  <div class="passage-block" id="passage-A_DailyLoop">
+    <h2 contenteditable="true">The Daily Loop</h2>
+    <p contenteditable="true">You walk in a circle. You wake up, you get dressed, you walk down the street. This is the rhythm of the everyday. By refusing the objective, you document moments of resistance.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalC')">› Hack the camera and change the perspective</a></li>
+      <li><a class="choice-link" onclick="goTo('A_Absurd')">› Laugh at the absurdity of these rules</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== A_Absurd ==================== -->
+  <div class="passage-block" id="passage-A_Absurd">
+    <h2 contenteditable="true">Absurd Transgressions</h2>
+    <p contenteditable="true">A sudden burst of neon and humor shatters the solemnity. The subversion of normative systems doesn't happen through quiet frustration here, but through escatological humor. Queerness can be joyful, silly, and entirely disruptive.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalC')">› Take this disruption and hack the engine</a></li>
+      <li><a class="choice-link" onclick="goTo('PortalD')">› Document this radical joy in the archive</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== PORTAL B ==================== -->
+  <div class="passage-block" id="passage-PortalB">
+    <h2 contenteditable="true">Portal B — Oozing Ecologies</h2>
+    <p contenteditable="true">You step outside the sterile confines of the game engine. Here, we practice Queer Ecology. We listen to the oozing, the strange, the multiplicitous. Look at games like <a class="ref-link" href="https://www.awaceb.com/tchia" target="_blank" rel="noopener"><em>Tchia</em></a> by <a class="ref-link" href="https://www.awaceb.com/" target="_blank" rel="noopener">Awaceb</a> and <a class="ref-link" href="https://indianlandtenure.itch.io/when-rivers-were-trails" target="_blank" rel="noopener"><em>When Rivers Were Trails</em></a> by the <a class="ref-link" href="https://www.indianlandtenure.org/" target="_blank" rel="noopener">Indian Land Tenure Foundation</a> with <a class="ref-link" href="https://elapensee.com/" target="_blank" rel="noopener">Elizabeth LaPensée</a>.</p>
+    <p contenteditable="true">What will you capture with your macro lens?</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('B_Decay')">› The decay of the urban structure</a></li>
+      <li><a class="choice-link" onclick="goTo('B_Symbiosis')">› The whispers of indigenous symbiosis</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== B_Decay ==================== -->
+  <div class="passage-block" id="passage-B_Decay">
+    <h2 contenteditable="true">Decay and Growth</h2>
+    <p contenteditable="true">The slime mold doesn't follow straight lines. You document the glitching roots. The mycelium network rewrites the game's pathfinding algorithm.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalC')">› Hack the camera and change the perspective</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== B_Symbiosis ==================== -->
+  <div class="passage-block" id="passage-B_Symbiosis">
+    <h2 contenteditable="true">Indigenous Symbiosis</h2>
+    <p contenteditable="true">You document the interconnectedness and pluriversal knowledge. The land speaks in protocols older than any game engine.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalD')">› Archive this knowledge</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== PORTAL C ==================== -->
+  <div class="passage-block" id="passage-PortalC">
+    <h2 contenteditable="true">Portal C — The Multiplicitous Avatar</h2>
+    <p contenteditable="true">Engines force avatars into binary, solid spaces. Here, bodies leak, merge, and occupy multiple states. Think of the counter-narrations in <a class="ref-link" href="https://www.tellmewhygame.com/" target="_blank" rel="noopener"><em>Tell Me Why</em></a> by <a class="ref-link" href="https://dont-nod.com/" target="_blank" rel="noopener">DONTNOD</a> or the fluidity in <a class="ref-link" href="https://store.steampowered.com/app/1041920/If_Found/" target="_blank" rel="noopener"><em>If Found...</em></a> by <a class="ref-link" href="https://dreamfeel.ie/" target="_blank" rel="noopener">Dreamfeel</a>. Break the collision boxes.</p>
+    <p contenteditable="true">How will you rebuild your avatar?</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('C_Glitch')">› Glitch the textures</a></li>
+      <li><a class="choice-link" onclick="goTo('PortalB')">› Merge with the environment</a></li>
+      <li><a class="choice-link" onclick="goTo('C_Revoice')">› Re-voice the narrative</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== C_Glitch ==================== -->
+  <div class="passage-block" id="passage-C_Glitch">
+    <h2 contenteditable="true">Glitch Textures</h2>
+    <p contenteditable="true">Your avatar becomes an impossible shape, bleeding into the game geometry. The collision mesh surrenders. Vertices scatter like seeds.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalD')">› Document this transformation in the archive</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== C_Revoice ==================== -->
+  <div class="passage-block" id="passage-C_Revoice">
+    <h2 contenteditable="true">Revoice Narrative</h2>
+    <p contenteditable="true">You take control of the microphone. The old script is gone. New words emerge from the static, spoken in tongues the engine was never designed to render.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalD')">› Create a new history</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== PORTAL D ==================== -->
+  <div class="passage-block" id="passage-PortalD">
+    <h2 contenteditable="true">Portal D — The Fabulated Archive</h2>
+    <p contenteditable="true">Welcome to the Archive. Here, you fabulate official documents for non-human entities and edit machinima to preserve erased queer memories, inspired by the <a class="ref-link" href="https://mixbrasil.org.br/" target="_blank" rel="noopener">Mix Brasil Festival</a> and <a class="ref-link" href="https://store.steampowered.com/app/2154250/Third_World_The_Bottom_Dimension/" target="_blank" rel="noopener"><em>Third World: The Bottom Dimension</em></a> by <a class="ref-link" href="https://www.serpentinegalleries.org/whats-on/gabriel-massan-third-world-the-bottom-dimension-game/" target="_blank" rel="noopener">Gabriel Massan</a>.</p>
+    <p contenteditable="true">What will you archive today?</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('D_River')">› A river's passport</a></li>
+      <li><a class="choice-link" onclick="goTo('PortalC')">› A forgotten memory</a></li>
+      <li><a class="choice-link" onclick="goTo('Arcade')">› Proceed to the arcade</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== D_River ==================== -->
+  <div class="passage-block" id="passage-D_River">
+    <h2 contenteditable="true">River Passport</h2>
+    <p contenteditable="true">You issue a passport to a body of water, granting it ecological citizenship. The river now has a name, a history, and the right to refuse extraction.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('Start')">› Return to the start</a></li>
+      <li><a class="choice-link" onclick="goTo('Arcade')">› Celebrate at the Arcade</a></li>
+    </ul>
+  </div>
+
+  <!-- ==================== GLITCH 1 ==================== -->
+  <div class="passage-block" id="passage-Glitch1">
+    <h2 class="glitch-text" contenteditable="true">⚠ CRITICAL ERROR: SUCCESS NOT FOUND.</h2>
+    <p contenteditable="true">The museum walls dissolve into raw, bleeding code. You refused to participate in the prescribed loop. You failed completely, and in doing so, you have broken the simulation.</p>
+    <p contenteditable="true"><em>"Failure is an alternative to capitalist, heteronormative, and extractivist logics of success."</em> — <a class="ref-link" href="https://www.dukeupress.edu/the-queer-art-of-failure" target="_blank" rel="noopener">Jack Halberstam, <em>The Queer Art of Failure</em></a></p>
+    <p contenteditable="true"><strong>Micro-instruction:</strong> Close the game window for a moment. Look out the physical window next to you. Record the sound of the nearest non-human entity you can find.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalC')">› Proceed to hack the digital skin</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== GLITCH 2 ==================== -->
+  <div class="passage-block" id="passage-Glitch2">
+    <h2 class="glitch-text" contenteditable="true">⚠ THE EARTH DEMANDS</h2>
+    <p contenteditable="true"><em>"A terra dá, a terra quer"</em> (The earth gives, the earth demands) — <a class="ref-link" href="https://www.goodreads.com/book/show/156430454-a-terra-d-a-terra-quer" target="_blank" rel="noopener">Antônio Bispo dos Santos (Nêgo Bispo)</a></p>
+    <p contenteditable="true">You have extracted mechanics and hacked bodies without stopping to listen. The engine refuses to compile.</p>
+    <p contenteditable="true">Look away from the screen. Acknowledge the physical space you occupy before continuing.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalB')">› I am ready to listen</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== GLITCH 4 ==================== -->
+  <div class="passage-block" id="passage-Glitch4">
+    <h2 class="glitch-text" contenteditable="true">⚠ THE STRANGE STRANGER</h2>
+    <p contenteditable="true">What does the slime mold think of your game?</p>
+    <p contenteditable="true">The text scrambles. Fungal growth overtakes the code block. You are no longer the center of this ecosystem. Timothy Morton's concept of the "strange stranger" manifests in every pixel.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('PortalB')">› Surrender to the mesh</a></li>
+    </ul>
+    <span class="back-to-top" onclick="goTo('Start')">↩ Return to start</span>
+  </div>
+
+  <!-- ==================== ARCADE ==================== -->
+  <div class="passage-block" id="passage-Arcade">
+    <h2 contenteditable="true">🎮 Arcade Celebration</h2>
+    <p contenteditable="true">Congratulations. You have completed the loop and arrived at the Carnival of Games.</p>
+    <p contenteditable="true">Thank you for Queering the Game.</p>
+    <ul>
+      <li><a class="choice-link" onclick="goTo('Start')">› Restart Workshop</a></li>
+    </ul>
+  </div>
+
+  <!-- ==================== METRICS ==================== -->
+  <div class="metrics" id="metrics-panel">
+    <strong>Journey Metrics:</strong><br>
+    Observe: <span id="m-observe">0</span> | Feel: <span id="m-feel">0</span> | Hack: <span id="m-hack">0</span> | Co-create: <span id="m-cocreate">0</span><br>
+    Glitches Encountered: <span id="m-glitches">0</span>
+  </div>
+
+  <!-- ==================== REFERENCES ==================== -->
+  <div class="references-section">
+    <h2>📚 References & Hyperlinks</h2>
+    <p style="color:#888; font-size:0.9em;">All games, theorists, and archives referenced in this workshop:</p>
+
+    <h3>Games</h3>
+    <ul>
+      <li><a class="ref-link" href="https://w.itch.io/dys4ia" target="_blank" rel="noopener"><em>Dys4ia</em></a> — Anna Anthropy (2012). An autobiographical game about hormonal transition.</li>
+      <li><a class="ref-link" href="https://merrittk.itch.io/lim" target="_blank" rel="noopener"><em>Lim</em></a> — merritt k (2012). A game about the violent experience of inhabiting a liminal social space.</li>
+      <li><a class="ref-link" href="https://www.awaceb.com/tchia" target="_blank" rel="noopener"><em>Tchia</em></a> — Awaceb (2023). An open-world adventure inspired by New Caledonia.</li>
+      <li><a class="ref-link" href="https://indianlandtenure.itch.io/when-rivers-were-trails" target="_blank" rel="noopener"><em>When Rivers Were Trails</em></a> — Indian Land Tenure Foundation / Elizabeth LaPensée (2019). A point-and-click adventure about the impact of colonization on Indigenous communities.</li>
+      <li><a class="ref-link" href="https://www.tellmewhygame.com/" target="_blank" rel="noopener"><em>Tell Me Why</em></a> — DONTNOD Entertainment (2020). An episodic adventure featuring a transgender protagonist.</li>
+      <li><a class="ref-link" href="https://store.steampowered.com/app/1041920/If_Found/" target="_blank" rel="noopener"><em>If Found...</em></a> — Dreamfeel (2020). A visual novel about going home, coming out, and erasing everything.</li>
+      <li><a class="ref-link" href="https://store.steampowered.com/app/2154250/Third_World_The_Bottom_Dimension/" target="_blank" rel="noopener"><em>Third World: The Bottom Dimension</em></a> — Gabriel Massan / Serpentine Arts Technologies (2022–ongoing). A machinima exploring Black Brazilian experience through colonialism and extraction.</li>
+    </ul>
+
+    <h3>Theorists & Writers</h3>
+    <ul>
+      <li><a class="ref-link" href="https://nyupress.org/9781479831036/video-games-have-always-been-queer/" target="_blank" rel="noopener">Bonnie Ruberg</a> — <em>Video Games Have Always Been Queer</em> (NYU Press, 2019). Also: <a class="ref-link" href="https://www.upress.umn.edu/9781517900373/queer-game-studies/" target="_blank" rel="noopener"><em>Queer Game Studies</em></a> (2017, co-edited with Adrienne Shaw).</li>
+      <li><a class="ref-link" href="https://www.dukeupress.edu/the-queer-art-of-failure" target="_blank" rel="noopener">Jack (Judith) Halberstam</a> — <em>The Queer Art of Failure</em> (Duke University Press, 2011). "Failure is an alternative to capitalist, heteronormative logics of success."</li>
+      <li><a class="ref-link" href="https://www.goodreads.com/book/show/156430454-a-terra-d-a-terra-quer" target="_blank" rel="noopener">Antônio Bispo dos Santos (Nêgo Bispo)</a> — <em>A terra dá, a terra quer</em> (The Land Gives, the Land Wants). Quilombola thought and indigenous epistemologies.</li>
+    </ul>
+
+    <h3>Archives & Festivals</h3>
+    <ul>
+      <li><a class="ref-link" href="https://mixbrasil.org.br/" target="_blank" rel="noopener">Mix Brasil Festival</a> — The largest LGBTQIA+ cultural festival in Latin America since 1993. Includes Mix.XR program for immersive queer experiences.</li>
+      <li><a class="ref-link" href="https://www.serpentinegalleries.org/whats-on/third-world-the-bottom-dimension/" target="_blank" rel="noopener">Serpentine Galleries</a> — Commissioning body for <em>Third World: The Bottom Dimension</em>.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+// Game State
+let state = {
+  observe: 0,
+  feel: 0,
+  hack: 0,
+  cocreate: 0,
+  glitches_seen: []
+};
+
+// Navigate to passage
+function goTo(id) {
+  // Rhizomatic Interruptions
+  if (id === 'PortalC' && state.feel === 0 && state.hack >= 2) {
+    id = 'Glitch2';
+  }
+  if (id === 'PortalD' && Math.random() < 0.25 && !state.glitches_seen.includes("G4")) {
+    id = 'Glitch4';
+  }
+
+  // Reset state on restart
+  if (id === 'Start') {
+    state = { observe: 0, feel: 0, hack: 0, cocreate: 0, glitches_seen: [] };
+  }
+
+  // Apply onEnter effects
+  applyOnEnter(id);
+
+  // Hide all passages
+  document.querySelectorAll('.passage-block').forEach(el => {
+    el.classList.remove('active');
+  });
+
+  // Show target passage
+  const target = document.getElementById('passage-' + id);
+  if (target) {
+    target.classList.add('active');
+  }
+
+  // Update metrics
+  updateMetrics();
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function applyOnEnter(id) {
+  switch(id) {
+    case 'PortalA':
+      state.observe++;
+      break;
+    case 'A_Frustration':
+      state.observe++;
+      break;
+    case 'A_DailyLoop':
+      state.observe++;
+      state.feel++;
+      break;
+    case 'A_Absurd':
+      state.observe++;
+      state.hack++;
+      break;
+    case 'PortalB':
+      state.feel++;
+      break;
+    case 'B_Decay':
+      state.feel++;
+      break;
+    case 'B_Symbiosis':
+      state.feel++;
+      break;
+    case 'PortalC':
+      state.hack++;
+      break;
+    case 'C_Glitch':
+      state.hack++;
+      break;
+    case 'C_Revoice':
+      state.hack++;
+      break;
+    case 'PortalD':
+      state.cocreate++;
+      break;
+    case 'D_River':
+      state.cocreate++;
+      break;
+    case 'Glitch1':
+      state.hack++;
+      state.observe = Math.max(0, state.observe - 1);
+      if (!state.glitches_seen.includes("G1")) state.glitches_seen.push("G1");
+      break;
+    case 'Glitch2':
+      if (!state.glitches_seen.includes("G2")) state.glitches_seen.push("G2");
+      break;
+    case 'Glitch4':
+      if (!state.glitches_seen.includes("G4")) state.glitches_seen.push("G4");
+      break;
+  }
+}
+
+function updateMetrics() {
+  document.getElementById('m-observe').textContent = state.observe;
+  document.getElementById('m-feel').textContent = state.feel;
+  document.getElementById('m-hack').textContent = state.hack;
+  document.getElementById('m-cocreate').textContent = state.cocreate;
+  document.getElementById('m-glitches').textContent = state.glitches_seen.length;
+}
+
+// Toggle editing
+let editEnabled = true;
+function toggleEdit() {
+  editEnabled = !editEnabled;
+  const editables = document.querySelectorAll('[contenteditable]');
+  editables.forEach(el => {
+    el.setAttribute('contenteditable', editEnabled ? 'true' : 'false');
+  });
+  document.getElementById('editToggle').textContent = editEnabled ? 'Lock Editing' : 'Unlock Editing';
+}
+
+// Initialize
+window.onload = function() {
+  updateMetrics();
+};
+</script>
+
+</body>
+</html>

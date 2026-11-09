@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-dark: #121212;
+  --color-bg-card: #1e1e1e;
+  --color-text-main: #e0e0e0;
+  --color-text-muted: #888888;
+  --color-link-pink: #ff79c6;
+  --color-link-hover: #bd93f9;
+  --color-glitch-red: #ff5555;
+  --color-border-dark: #333333;
+}
+
+body {
+  background-color: var(--color-bg-dark);
+  font-family: "Courier New", Courier, monospace;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.animate-glitch {
+  animation: glitch 0.5s infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.passage-content h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--color-link-pink);
+}
+
+.passage-content p {
+  margin-bottom: 0.75rem;
+  line-height: 1.7;
+}
+
+.passage-content em {
+  color: var(--color-link-hover);
+  font-style: italic;
+}
+
+.passage-content strong {
+  color: #f8f8f2;
+}
